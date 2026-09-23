@@ -98,6 +98,7 @@ public final class ModItems {
 
     public static void register() {
 
+        // Put the actual Evoker's Omen items in Food & Drinks.
         CreativeModeTabEvents.modifyOutputEvent(
                 CreativeModeTabs.FOOD_AND_DRINKS
         ).register((FabricCreativeModeTabOutput output) -> {
@@ -108,6 +109,7 @@ public final class ModItems {
             output.accept(EVOKERS_OMEN_IV);
             output.accept(EVOKERS_OMEN_V);
 
+            // Hide automatic Splash and Lingering Essence variants.
             output.getDisplayStacks().removeIf(
                     ModItems::isUnwantedEssencePotionVariant
             );
@@ -117,6 +119,7 @@ public final class ModItems {
             );
         });
 
+        // Hide automatic Essence Tipped Arrows from Combat.
         CreativeModeTabEvents.modifyOutputEvent(
                 CreativeModeTabs.COMBAT
         ).register((FabricCreativeModeTabOutput output) -> {
