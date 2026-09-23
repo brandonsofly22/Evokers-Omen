@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "evokers-omen:item/evokers_omen_2"
+  }
+}
