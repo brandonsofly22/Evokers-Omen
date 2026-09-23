@@ -34,7 +34,7 @@ public abstract class PotionBrewingMixin {
             CallbackInfoReturnable<Boolean> cir
     ) {
         if (ingredient.is(Items.EMERALD)
-                || ingredient.is(Items.BANNER.white())
+                || ingredient.is(Items.WHITE_BANNER)
                 || ingredient.is(Items.EMERALD_BLOCK)
                 || ingredient.is(Items.TOTEM_OF_UNDYING)) {
             cir.setReturnValue(true);
@@ -312,7 +312,7 @@ public abstract class PotionBrewingMixin {
     private static boolean evokerOnlyRaid$isOminousBanner(
             ItemStack stack
     ) {
-        if (!stack.is(Items.BANNER.white())) {
+        if (!stack.is(Items.WHITE_BANNER)) {
             return false;
         }
 
