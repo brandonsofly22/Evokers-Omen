@@ -1,6 +1,6 @@
 package com.brandon.evokeronlyraid;
 
-import net.fabricmc.fabric.api.registry.FabricPotionBrewingBuilder;
+import net.fabricmc.fabric.api.registry.FabricBrewingRecipeRegistryBuilder;
 import net.fabricmc.fabric.impl.recipe.ingredient.builtin.ComponentsIngredient;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponents;
@@ -21,7 +21,7 @@ public final class ModBrewing {
         Ingredient ominousBottleIII =
                 createOminousBottleIngredient(2);
 
-        FabricPotionBrewingBuilder.BUILD.register(builder -> {
+        FabricBrewingRecipeRegistryBuilder.BUILD.register(builder -> {
 
             // LEVEL I
             builder.registerPotionRecipe(

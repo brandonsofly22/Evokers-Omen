@@ -2,7 +2,6 @@ package com.brandon.evokeronlyraid;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.resources.Identifier;
 import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
@@ -12,11 +11,8 @@ import java.util.Map;
 
 public final class EvokerRaidSavedData extends SavedData {
 
-    private static final Identifier FILE_ID =
-            Identifier.fromNamespaceAndPath(
-                    EvokerOnlyRaid.MOD_ID,
-                    "evoker_raid_data"
-            );
+    private static final String FILE_ID =
+            EvokerOnlyRaid.MOD_ID + "_evoker_raid_data";
 
     public static final Codec<EvokerRaidSavedData> CODEC =
             RecordCodecBuilder.create(instance ->

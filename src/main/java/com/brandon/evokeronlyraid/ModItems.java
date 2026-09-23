@@ -1,7 +1,6 @@
 package com.brandon.evokeronlyraid;
 
-import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
-import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTabOutput;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
@@ -99,9 +98,9 @@ public final class ModItems {
     public static void register() {
 
         // Put the actual Evoker's Omen items in Food & Drinks.
-        CreativeModeTabEvents.modifyOutputEvent(
+        ItemGroupEvents.modifyEntriesEvent(
                 CreativeModeTabs.FOOD_AND_DRINKS
-        ).register((FabricCreativeModeTabOutput output) -> {
+        ).register(output -> {
 
             output.accept(EVOKERS_OMEN_I);
             output.accept(EVOKERS_OMEN_II);
@@ -120,9 +119,9 @@ public final class ModItems {
         });
 
         // Hide automatic Essence Tipped Arrows from Combat.
-        CreativeModeTabEvents.modifyOutputEvent(
+        ItemGroupEvents.modifyEntriesEvent(
                 CreativeModeTabs.COMBAT
-        ).register((FabricCreativeModeTabOutput output) -> {
+        ).register(output -> {
 
             output.getDisplayStacks().removeIf(
                     ModItems::isUnwantedEssenceArrow
