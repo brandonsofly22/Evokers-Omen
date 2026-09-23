@@ -45,12 +45,30 @@ public abstract class LivingEntityMixin {
             int maximum;
 
             switch (omenLevel) {
-                case 1 -> { minimum = 1; maximum = 5; }
-                case 2 -> { minimum = 2; maximum = 5; }
-                case 3 -> { minimum = 2; maximum = 6; }
-                case 4 -> { minimum = 3; maximum = 6; }
-                case 5 -> { minimum = 3; maximum = 7; }
-                default -> { minimum = 0; maximum = 0; }
+                case 1 -> {
+                    minimum = 1;
+                    maximum = 5;
+                }
+                case 2 -> {
+                    minimum = 2;
+                    maximum = 5;
+                }
+                case 3 -> {
+                    minimum = 2;
+                    maximum = 6;
+                }
+                case 4 -> {
+                    minimum = 3;
+                    maximum = 6;
+                }
+                case 5 -> {
+                    minimum = 3;
+                    maximum = 7;
+                }
+                default -> {
+                    minimum = 0;
+                    maximum = 0;
+                }
             }
 
             int customEmeraldAmount =
@@ -70,20 +88,30 @@ public abstract class LivingEntityMixin {
         Item omenDrop = null;
 
         if (omenLevel == 0) {
+
+            // Normal/world/summoned/vanilla-raid Evoker:
+            // 5% chance for Evoker's Omen I.
             if (evoker.getRandom().nextDouble() < 0.05) {
                 omenDrop = ModItems.EVOKERS_OMEN_I;
             }
+
         } else {
+
+            // Custom raid Evoker.
             double roll = evoker.getRandom().nextDouble() * 100.0;
 
             if (omenLevel >= 5 && roll < 0.5) {
                 omenDrop = ModItems.EVOKERS_OMEN_V;
+
             } else if (omenLevel >= 4 && roll < 1.5) {
                 omenDrop = ModItems.EVOKERS_OMEN_IV;
+
             } else if (omenLevel >= 3 && roll < 3.5) {
                 omenDrop = ModItems.EVOKERS_OMEN_III;
+
             } else if (omenLevel >= 2 && roll < 6.5) {
                 omenDrop = ModItems.EVOKERS_OMEN_II;
+
             } else if (roll < 11.5) {
                 omenDrop = ModItems.EVOKERS_OMEN_I;
             }
@@ -95,6 +123,8 @@ public abstract class LivingEntityMixin {
             );
         }
 
+        // Suppress vanilla emeralds only for custom Evoker raids.
+        // All other vanilla loot is untouched.
         if (omenLevel >= 1 && omenLevel <= 5) {
             return stack -> {
                 if (!stack.is(Items.EMERALD)) {
