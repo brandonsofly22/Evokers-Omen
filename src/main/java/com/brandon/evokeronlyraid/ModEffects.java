@@ -75,7 +75,7 @@ public final class ModEffects {
                         player.addEffect(
                                 new MobEffectInstance(
                                         EVOKER_RAID_OMEN,
-                                        100,
+                                        200,
                                         amplification
                                 )
                         );

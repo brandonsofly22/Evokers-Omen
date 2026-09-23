@@ -7,7 +7,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.raid.Raid;
 import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.level.Level;
@@ -51,7 +50,7 @@ public abstract class RaidMixin implements EvokerRaidData {
          EntitySpawnReason reason
  ) {
   if (evokerOnlyRaid$omenLevel > 0) {
-   Entity evoker = EntityTypes.EVOKER.create(level, reason);
+   Entity evoker = EntityType.EVOKER.create(level, reason);
 
    if (evoker instanceof EvokerRaidMobData evokerData) {
     evokerData.evokerOnlyRaid$setOmenLevel(
@@ -103,7 +102,7 @@ public abstract class RaidMixin implements EvokerRaidData {
 
   for (int i = 0; i < extraEvokers; i++) {
    Raider extraEvoker =
-           (Raider) EntityTypes.EVOKER.create(
+           (Raider) EntityType.EVOKER.create(
                    level,
                    EntitySpawnReason.EVENT
            );
