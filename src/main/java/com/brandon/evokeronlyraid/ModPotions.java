@@ -3,7 +3,7 @@ package com.brandon.evokeronlyraid;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.alchemy.Potion;
 
 public final class ModPotions {
@@ -32,7 +32,7 @@ public final class ModPotions {
     private static Holder<Potion> register(String name) {
         return Registry.registerForHolder(
                 BuiltInRegistries.POTION,
-                Identifier.fromNamespaceAndPath(
+                ResourceLocation.fromNamespaceAndPath(
                         EvokerOnlyRaid.MOD_ID,
                         name
                 ),

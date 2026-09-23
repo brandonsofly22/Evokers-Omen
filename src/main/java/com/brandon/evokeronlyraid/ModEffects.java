@@ -4,7 +4,7 @@ import com.brandon.evokeronlyraid.access.EvokerRaidData;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
@@ -21,7 +21,7 @@ public final class ModEffects {
     public static final Holder<MobEffect> EVOKERS_OMEN =
             Registry.registerForHolder(
                     BuiltInRegistries.MOB_EFFECT,
-                    Identifier.fromNamespaceAndPath(
+                    ResourceLocation.fromNamespaceAndPath(
                             EvokerOnlyRaid.MOD_ID,
                             "evokers_omen"
                     ),
@@ -31,7 +31,7 @@ public final class ModEffects {
     public static final Holder<MobEffect> EVOKER_RAID_OMEN =
             Registry.registerForHolder(
                     BuiltInRegistries.MOB_EFFECT,
-                    Identifier.fromNamespaceAndPath(
+                    ResourceLocation.fromNamespaceAndPath(
                             EvokerOnlyRaid.MOD_ID,
                             "evoker_raid_omen"
                     ),

@@ -1,14 +1,13 @@
 package com.brandon.evokeronlyraid;
 
-import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
-import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTabOutput;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -46,7 +45,7 @@ public final class ModItems {
         ResourceKey<Item> itemKey =
                 ResourceKey.create(
                         Registries.ITEM,
-                        Identifier.fromNamespaceAndPath(
+                        ResourceLocation.fromNamespaceAndPath(
                                 EvokerOnlyRaid.MOD_ID,
                                 name
                         )
@@ -99,9 +98,9 @@ public final class ModItems {
     public static void register() {
 
         // Put the actual Evoker's Omen items in Food & Drinks.
-        CreativeModeTabEvents.modifyOutputEvent(
+        ItemGroupEvents.modifyEntriesEvent(
                 CreativeModeTabs.FOOD_AND_DRINKS
-        ).register((FabricCreativeModeTabOutput output) -> {
+        ).register(output -> {
 
             output.accept(EVOKERS_OMEN_I);
             output.accept(EVOKERS_OMEN_II);
@@ -120,9 +119,9 @@ public final class ModItems {
         });
 
         // Hide automatic Essence Tipped Arrows from Combat.
-        CreativeModeTabEvents.modifyOutputEvent(
+        ItemGroupEvents.modifyEntriesEvent(
                 CreativeModeTabs.COMBAT
-        ).register((FabricCreativeModeTabOutput output) -> {
+        ).register(output -> {
 
             output.getDisplayStacks().removeIf(
                     ModItems::isUnwantedEssenceArrow

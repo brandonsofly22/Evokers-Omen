@@ -1,7 +1,7 @@
 package com.brandon.evokeronlyraid.mixin;
 
 import com.brandon.evokeronlyraid.access.EvokerRaidMobData;
-import net.minecraft.world.entity.monster.illager.Evoker;
+import net.minecraft.world.entity.monster.Evoker;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
