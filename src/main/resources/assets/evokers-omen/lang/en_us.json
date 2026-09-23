@@ -1,0 +1,18 @@
+{
+  "item.evokers-omen.evokers_omen_1": "Evoker's Omen",
+  "item.evokers-omen.evokers_omen_2": "Evoker's Omen II",
+  "item.evokers-omen.evokers_omen_3": "Evoker's Omen III",
+  "item.evokers-omen.evokers_omen_4": "Evoker's Omen IV",
+  "item.evokers-omen.evokers_omen_5": "Evoker's Omen V",
+
+  "effect.evokers-omen.evokers_omen": "Evoker's Omen",
+  "effect.evokers-omen.evoker_raid_omen": "Evoker Raid Omen",
+
+  "item.minecraft.potion.effect.evokers_omen_1_base": "Evoker's Omen Essence",
+  "item.minecraft.potion.effect.evokers_omen_2_base": "Evoker's Omen Essence II",
+  "item.minecraft.potion.effect.evokers_omen_3_base": "Evoker's Omen Essence III",
+  "item.minecraft.potion.effect.evokers_omen_3_emerald": "Evoker's Omen Essence III",
+  "item.minecraft.potion.effect.evokers_omen_3_banner": "Evoker's Omen Essence III",
+  "item.minecraft.potion.effect.evokers_omen_4_base": "Evoker's Omen Essence IV",
+  "item.minecraft.potion.effect.evokers_omen_5_base": "Evoker's Omen Essence V"
+}
