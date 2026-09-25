@@ -4,23 +4,15 @@
   "version": "${version}",
   "name": "Evoker's Omen",
   "description": "Adds Evoker's Omen, a new five-level brewing progression that allows players to trigger increasingly difficult Evoker-only raids while leaving vanilla Ominous Bottles and raids unchanged.",
-  "authors": [
-    "Brandon"
-  ],
+  "authors": ["Brandon"],
   "license": "Apache-2.0",
   "environment": "*",
-  "entrypoints": {
-    "main": [
-      "com.brandon.evokeronlyraid.EvokerOnlyRaid"
-    ]
-  },
-  "mixins": [
-    "evoker-only-raid.mixins.json"
-  ],
+  "entrypoints": {"main": ["com.brandon.evokeronlyraid.EvokerOnlyRaid"]},
+  "mixins": ["evoker-only-raid.mixins.json"],
   "depends": {
     "fabricloader": ">=0.18.1",
     "fabric-api": "*",
-    "minecraft": "1.21.10",
-    "java": ">=25"
+    "minecraft": ">=1.21.9 <=1.21.10",
+    "java": ">=21"
   }
 }
