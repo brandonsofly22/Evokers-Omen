@@ -1,17 +1,8 @@
 {
   "required": true,
   "package": "com.brandon.evokeronlyraid.mixin",
-  "compatibilityLevel": "JAVA_25",
-  "mixinextras": {
-    "minVersion": "0.5.4"
-  },
-  "mixins": [
-    "RaidMixin",
-    "EvokerMixin",
-    "LivingEntityMixin",
-    "PotionBrewingMixin"
-  ],
-  "injectors": {
-    "defaultRequire": 1
-  }
+  "compatibilityLevel": "JAVA_21",
+  "mixinextras": {"minVersion": "0.5.0"},
+  "mixins": ["RaidMixin","EvokerMixin","LivingEntityMixin","PotionBrewingMixin"],
+  "injectors": {"defaultRequire": 1}
 }
