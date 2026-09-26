@@ -24,7 +24,8 @@ public final class EvokerOnlyRaid implements ModInitializer {
    for (ServerLevel level : server.getAllLevels()) {
     EvokerRaidSavedData savedData =
             level.getDataStorage().computeIfAbsent(
-                    EvokerRaidSavedData.TYPE
+                    EvokerRaidSavedData.FACTORY,
+                    EvokerRaidSavedData.getFileId()
             );
 
     for (var entry : savedData.getRaidLevels().entrySet()) {
