@@ -69,9 +69,7 @@ public final class ModEffects {
 
                     Raid raid = level.getRaidAt(player.blockPosition());
 
-                    if (raid == null
-                            || raid.getRaidOmenLevel() < raid.getMaxRaidOmenLevel()) {
-
+                    if (raid == null) {
                         player.addEffect(
                                 new MobEffectInstance(
                                         EVOKER_RAID_OMEN,
@@ -81,7 +79,6 @@ public final class ModEffects {
                         );
 
                         player.setRaidOmenPosition(player.blockPosition());
-
                         return false;
                     }
                 }
@@ -143,7 +140,6 @@ public final class ModEffects {
                         }
 
                         player.clearRaidOmenPosition();
-
                         return false;
                     }
                 }
