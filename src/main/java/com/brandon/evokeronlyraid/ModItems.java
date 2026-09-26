@@ -61,7 +61,7 @@ public final class ModItems {
                                 new ApplyStatusEffectsConsumeEffect(
                                         new MobEffectInstance(
                                                 ModEffects.EVOKERS_OMEN,
-                                                6000,
+                                                18000,
                                                 amplifier
                                         )
                                 )
