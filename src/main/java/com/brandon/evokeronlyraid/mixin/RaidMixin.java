@@ -8,6 +8,7 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.raid.Raid;
 import net.minecraft.world.entity.raid.Raider;
@@ -19,60 +20,159 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.OptionalInt;
+
 @Mixin(targets = "net.minecraft.world.entity.raid.Raid")
 public abstract class RaidMixin implements EvokerRaidData {
 
- @Unique private int evokerOnlyRaid$omenLevel = 0;
- @Unique private int evokerOnlyRaid$scalingCounter = 0;
- @Unique private int evokerOnlyRaid$lastScaledWave = -1;
+ @Unique
+ private int evokerOnlyRaid$omenLevel = 0;
 
- @Override public int evokerOnlyRaid$getOmenLevel() { return evokerOnlyRaid$omenLevel; }
- @Override public void evokerOnlyRaid$setOmenLevel(int level) { this.evokerOnlyRaid$omenLevel = level; }
+ @Unique
+ private int evokerOnlyRaid$scalingCounter = 0;
 
- @Inject(method = "tick", at = @At("HEAD"))
- private void evokerOnlyRaid$restoreSavedOmenLevel(CallbackInfo ci) {
-  if (evokerOnlyRaid$omenLevel > 0) return;
-  Raid raid = (Raid) (Object) this;
-  ServerLevel level = (ServerLevel) raid.getLevel();
-  EvokerRaidSavedData savedData = level.getDataStorage().computeIfAbsent(EvokerRaidSavedData.FACTORY, EvokerRaidSavedData.getFileId());
-  int savedOmenLevel = savedData.getRaidLevel(raid.getId());
-  if (savedOmenLevel > 0) evokerOnlyRaid$omenLevel = savedOmenLevel;
+ @Unique
+ private int evokerOnlyRaid$lastScaledWave = -1;
+
+ @Override
+ public int evokerOnlyRaid$getOmenLevel() {
+  return evokerOnlyRaid$omenLevel;
  }
 
- @ModifyReturnValue(method = "getRaidOmenLevel", at = @At("RETURN"))
+ @Override
+ public void evokerOnlyRaid$setOmenLevel(int level) {
+  this.evokerOnlyRaid$omenLevel = level;
+ }
+
+ /*
+  * Restore the custom Evoker Omen level from saved data if a Raid
+  * was loaded before the startup restoration could reconnect it.
+  */
+ @Inject(
+         method = "tick",
+         at = @At("HEAD")
+ )
+ private void evokerOnlyRaid$restoreSavedOmenLevel(
+         ServerLevel level,
+         CallbackInfo ci
+ ) {
+  if (evokerOnlyRaid$omenLevel > 0) {
+   return;
+  }
+
+  Raid raid = (Raid) (Object) this;
+  OptionalInt raidId = level.getRaids().getId(raid);
+
+  if (raidId.isEmpty()) {
+   return;
+  }
+
+  EvokerRaidSavedData savedData =
+          level.getDataStorage().computeIfAbsent(
+                  EvokerRaidSavedData.TYPE
+          );
+
+  int savedOmenLevel =
+          savedData.getRaidLevel(raidId.getAsInt());
+
+  if (savedOmenLevel > 0) {
+   evokerOnlyRaid$omenLevel = savedOmenLevel;
+  }
+ }
+
+ /*
+  * While a custom Evoker raid exists, make its vanilla
+  * Raid Omen level appear full.
+  *
+  * This prevents vanilla Bad Omen from creating another
+  * Raid Omen during an active custom Evoker raid.
+  */
+ @ModifyReturnValue(
+         method = "getRaidOmenLevel",
+         at = @At("RETURN")
+ )
  private int evokerOnlyRaid$blockOmenDuringCustomRaid(int original) {
   if (evokerOnlyRaid$omenLevel > 0) {
    Raid raid = (Raid) (Object) this;
    return raid.getMaxRaidOmenLevel();
   }
+
   return original;
  }
 
- @Redirect(method = "spawnGroup", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/EntityType;create(Lnet/minecraft/world/level/Level;)Lnet/minecraft/world/entity/Entity;"))
- private Entity evokerOnlyRaid$replaceWithEvoker(EntityType<?> originalType, Level level) {
+ @Redirect(
+         method = "spawnGroup",
+         at = @At(
+                 value = "INVOKE",
+                 target = "Lnet/minecraft/world/entity/EntityType;create(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/EntitySpawnReason;)Lnet/minecraft/world/entity/Entity;"
+         )
+ )
+ private Entity evokerOnlyRaid$replaceWithEvoker(
+         EntityType<?> originalType,
+         Level level,
+         EntitySpawnReason reason
+ ) {
   if (evokerOnlyRaid$omenLevel > 0) {
-   Entity evoker = EntityType.EVOKER.create(level);
-   if (evoker instanceof EvokerRaidMobData evokerData) evokerData.evokerOnlyRaid$setOmenLevel(evokerOnlyRaid$omenLevel);
+   Entity evoker = EntityType.EVOKER.create(level, reason);
+
+   if (evoker instanceof EvokerRaidMobData evokerData) {
+    evokerData.evokerOnlyRaid$setOmenLevel(
+            evokerOnlyRaid$omenLevel
+    );
+   }
+
    return evoker;
   }
-  return originalType.create(level);
+
+  return originalType.create(level, reason);
  }
 
- @ModifyExpressionValue(method = "spawnGroup", at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/raid/Raid$RaiderType;entityType:Lnet/minecraft/world/entity/EntityType;", ordinal = 1))
- private EntityType<?> evokerOnlyRaid$skipRavagerRiderBlock(EntityType<?> originalType) {
-  if (evokerOnlyRaid$omenLevel > 0) return EntityType.EVOKER;
+ @ModifyExpressionValue(
+         method = "spawnGroup",
+         at = @At(
+                 value = "FIELD",
+                 target = "Lnet/minecraft/world/entity/raid/Raid$RaiderType;entityType:Lnet/minecraft/world/entity/EntityType;",
+                 ordinal = 1
+         )
+ )
+ private EntityType<?> evokerOnlyRaid$skipRavagerRiderBlock(
+         EntityType<?> originalType
+ ) {
+  if (evokerOnlyRaid$omenLevel > 0) {
+   return EntityType.EVOKER;
+  }
+
   return originalType;
  }
 
- @Redirect(method = "spawnGroup", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/raid/Raid;joinRaid(ILnet/minecraft/world/entity/raid/Raider;Lnet/minecraft/core/BlockPos;Z)V"))
- private void evokerOnlyRaid$joinAndScale(Raid raid, int groupNumber, Raider raider, BlockPos pos, boolean exists) {
-  raid.joinRaid(groupNumber, raider, pos, exists);
-  if (evokerOnlyRaid$omenLevel <= 1) return;
+ @Redirect(
+         method = "spawnGroup",
+         at = @At(
+                 value = "INVOKE",
+                 target = "Lnet/minecraft/world/entity/raid/Raid;joinRaid(Lnet/minecraft/server/level/ServerLevel;ILnet/minecraft/world/entity/raid/Raider;Lnet/minecraft/core/BlockPos;Z)V"
+         )
+ )
+ private void evokerOnlyRaid$joinAndScale(
+         Raid raid,
+         ServerLevel level,
+         int groupNumber,
+         Raider raider,
+         BlockPos pos,
+         boolean exists
+ ) {
+  raid.joinRaid(level, groupNumber, raider, pos, exists);
+
+  if (evokerOnlyRaid$omenLevel <= 1) {
+   return;
+  }
+
   if (evokerOnlyRaid$lastScaledWave != groupNumber) {
    evokerOnlyRaid$lastScaledWave = groupNumber;
    evokerOnlyRaid$scalingCounter = 0;
   }
+
   evokerOnlyRaid$scalingCounter++;
+
   int extraEvokers = switch (evokerOnlyRaid$omenLevel) {
    case 2 -> evokerOnlyRaid$scalingCounter % 4 == 0 ? 1 : 0;
    case 3 -> evokerOnlyRaid$scalingCounter % 2 == 0 ? 1 : 0;
@@ -80,12 +180,29 @@ public abstract class RaidMixin implements EvokerRaidData {
    case 5 -> 1;
    default -> 0;
   };
-  ServerLevel level = (ServerLevel) raid.getLevel();
+
   for (int i = 0; i < extraEvokers; i++) {
-   Raider extraEvoker = (Raider) EntityType.EVOKER.create(level);
+   Raider extraEvoker =
+           (Raider) EntityType.EVOKER.create(
+                   level,
+                   EntitySpawnReason.EVENT
+           );
+
    if (extraEvoker != null) {
-    if (extraEvoker instanceof EvokerRaidMobData evokerData) evokerData.evokerOnlyRaid$setOmenLevel(evokerOnlyRaid$omenLevel);
-    raid.joinRaid(groupNumber, extraEvoker, pos, false);
+
+    if (extraEvoker instanceof EvokerRaidMobData evokerData) {
+     evokerData.evokerOnlyRaid$setOmenLevel(
+             evokerOnlyRaid$omenLevel
+     );
+    }
+
+    raid.joinRaid(
+            level,
+            groupNumber,
+            extraEvoker,
+            pos,
+            false
+    );
    }
   }
  }

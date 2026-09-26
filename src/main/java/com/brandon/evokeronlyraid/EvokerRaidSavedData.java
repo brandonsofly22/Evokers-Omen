@@ -1,9 +1,10 @@
 package com.brandon.evokeronlyraid;
 
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,10 +14,20 @@ public final class EvokerRaidSavedData extends SavedData {
     private static final String FILE_ID =
             EvokerOnlyRaid.MOD_ID + "_evoker_raid_data";
 
-    public static final SavedData.Factory<EvokerRaidSavedData> FACTORY =
-            new SavedData.Factory<>(
+    public static final Codec<EvokerRaidSavedData> CODEC =
+            RecordCodecBuilder.create(instance ->
+                    instance.group(
+                            Codec.unboundedMap(Codec.STRING, Codec.INT)
+                                    .optionalFieldOf("raid_levels", Map.of())
+                                    .forGetter(EvokerRaidSavedData::getSerializedRaidLevels)
+                    ).apply(instance, EvokerRaidSavedData::new)
+            );
+
+    public static final SavedDataType<EvokerRaidSavedData> TYPE =
+            new SavedDataType<>(
+                    FILE_ID,
                     EvokerRaidSavedData::new,
-                    EvokerRaidSavedData::load,
+                    CODEC,
                     DataFixTypes.SAVED_DATA_RAIDS
             );
 
@@ -26,49 +37,33 @@ public final class EvokerRaidSavedData extends SavedData {
         this.raidLevels = new HashMap<>();
     }
 
-    private static EvokerRaidSavedData load(
-            CompoundTag tag,
-            HolderLookup.Provider provider
-    ) {
-        EvokerRaidSavedData data = new EvokerRaidSavedData();
+    private EvokerRaidSavedData(Map<String, Integer> serializedRaidLevels) {
+        this.raidLevels = new HashMap<>();
 
-        CompoundTag raidLevelsTag =
-                tag.getCompound("raid_levels");
-
-        for (String key : raidLevelsTag.getAllKeys()) {
+        for (Map.Entry<String, Integer> entry : serializedRaidLevels.entrySet()) {
             try {
-                int raidId = Integer.parseInt(key);
-                int omenLevel = raidLevelsTag.getInt(key);
-
-                data.raidLevels.put(raidId, omenLevel);
+                int raidId = Integer.parseInt(entry.getKey());
+                this.raidLevels.put(raidId, entry.getValue());
             } catch (NumberFormatException ignored) {
                 EvokerOnlyRaid.LOGGER.warn(
                         "Ignoring invalid saved Evoker raid ID: {}",
-                        key
+                        entry.getKey()
                 );
             }
         }
-
-        return data;
     }
 
-    @Override
-    public CompoundTag save(
-            CompoundTag tag,
-            HolderLookup.Provider provider
-    ) {
-        CompoundTag raidLevelsTag = new CompoundTag();
+    private Map<String, Integer> getSerializedRaidLevels() {
+        Map<String, Integer> serialized = new HashMap<>();
 
         for (Map.Entry<Integer, Integer> entry : raidLevels.entrySet()) {
-            raidLevelsTag.putInt(
+            serialized.put(
                     Integer.toString(entry.getKey()),
                     entry.getValue()
             );
         }
 
-        tag.put("raid_levels", raidLevelsTag);
-
-        return tag;
+        return serialized;
     }
 
     public void setRaidLevel(int raidId, int omenLevel) {
@@ -87,9 +82,5 @@ public final class EvokerRaidSavedData extends SavedData {
 
     public Map<Integer, Integer> getRaidLevels() {
         return Map.copyOf(raidLevels);
-    }
-
-    public static String getFileId() {
-        return FILE_ID;
     }
 }

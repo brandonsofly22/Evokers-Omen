@@ -14,6 +14,8 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.raid.Raid;
 
+import java.util.OptionalInt;
+
 public final class ModEffects {
 
     public static final Holder<MobEffect> EVOKERS_OMEN =
@@ -37,9 +39,7 @@ public final class ModEffects {
             );
 
     public static void register() {
-        EvokerOnlyRaid.LOGGER.info(
-                "Registering Evoker's Omen effects."
-        );
+        EvokerOnlyRaid.LOGGER.info("Registering Evoker's Omen effects.");
     }
 
     private static final class EvokersOmenEffect extends MobEffect {
@@ -58,22 +58,19 @@ public final class ModEffects {
 
         @Override
         public boolean applyEffectTick(
+                ServerLevel level,
                 LivingEntity mob,
                 int amplification
         ) {
-            if (mob instanceof ServerPlayer player
-                    && player.level() instanceof ServerLevel level) {
-
+            if (mob instanceof ServerPlayer player) {
                 if (!player.isSpectator()
                         && level.getDifficulty() != Difficulty.PEACEFUL
                         && level.isVillage(player.blockPosition())) {
 
-                    Raid raid =
-                            level.getRaidAt(
-                                    player.blockPosition()
-                            );
+                    Raid raid = level.getRaidAt(player.blockPosition());
 
                     if (raid == null) {
+
                         player.addEffect(
                                 new MobEffectInstance(
                                         EVOKER_RAID_OMEN,
@@ -82,9 +79,7 @@ public final class ModEffects {
                                 )
                         );
 
-                        player.setRaidOmenPosition(
-                                player.blockPosition()
-                        );
+                        player.setRaidOmenPosition(player.blockPosition());
 
                         return false;
                     }
@@ -111,44 +106,39 @@ public final class ModEffects {
 
         @Override
         public boolean applyEffectTick(
+                ServerLevel level,
                 LivingEntity mob,
                 int amplification
         ) {
-            if (mob instanceof ServerPlayer player
-                    && player.level() instanceof ServerLevel level) {
-
+            if (mob instanceof ServerPlayer player) {
                 if (!player.isSpectator()) {
-                    var raidOmenPosition =
-                            player.getRaidOmenPosition();
+                    var raidOmenPosition = player.getRaidOmenPosition();
 
                     if (raidOmenPosition != null) {
-                        Raid raid =
-                                level.getRaids()
-                                        .createOrExtendRaid(
-                                                player,
-                                                raidOmenPosition
-                                        );
+                        Raid raid = level.getRaids().createOrExtendRaid(
+                                player,
+                                raidOmenPosition
+                        );
 
                         if (raid != null) {
-                            int evokerOmenLevel =
-                                    amplification + 1;
+                            int evokerOmenLevel = amplification + 1;
 
                             ((EvokerRaidData) raid)
-                                    .evokerOnlyRaid$setOmenLevel(
-                                            evokerOmenLevel
-                                    );
+                                    .evokerOnlyRaid$setOmenLevel(evokerOmenLevel);
 
-                            EvokerRaidSavedData savedData =
-                                    level.getDataStorage()
-                                            .computeIfAbsent(
-                                                    EvokerRaidSavedData.FACTORY,
-                                                    EvokerRaidSavedData.getFileId()
-                                            );
+                            OptionalInt raidId = level.getRaids().getId(raid);
 
-                            savedData.setRaidLevel(
-                                    raid.getId(),
-                                    evokerOmenLevel
-                            );
+                            if (raidId.isPresent()) {
+                                EvokerRaidSavedData savedData =
+                                        level.getDataStorage().computeIfAbsent(
+                                                EvokerRaidSavedData.TYPE
+                                        );
+
+                                savedData.setRaidLevel(
+                                        raidId.getAsInt(),
+                                        evokerOmenLevel
+                                );
+                            }
                         }
 
                         player.clearRaidOmenPosition();
