@@ -1,5 +1,6 @@
 package com.brandon.evokeronlyraid.mixin;
 
+import com.brandon.evokeronlyraid.EvokerRaidSavedData;
 import com.brandon.evokeronlyraid.access.EvokerRaidData;
 import com.brandon.evokeronlyraid.access.EvokerRaidMobData;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
@@ -15,16 +16,56 @@ import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.OptionalInt;
 
 @Mixin(targets = "net.minecraft.world.entity.raid.Raid")
 public abstract class RaidMixin implements EvokerRaidData {
-    @Unique private int evokerOnlyRaid$omenLevel = 0;
-    @Unique private int evokerOnlyRaid$scalingCounter = 0;
-    @Unique private int evokerOnlyRaid$lastScaledWave = -1;
 
-    @Override public int evokerOnlyRaid$getOmenLevel() { return evokerOnlyRaid$omenLevel; }
-    @Override public void evokerOnlyRaid$setOmenLevel(int level) { this.evokerOnlyRaid$omenLevel = level; }
+    @Unique
+    private int evokerOnlyRaid$omenLevel = 0;
+
+    @Unique
+    private int evokerOnlyRaid$scalingCounter = 0;
+
+    @Unique
+    private int evokerOnlyRaid$lastScaledWave = -1;
+
+    @Override
+    public int evokerOnlyRaid$getOmenLevel() {
+        return evokerOnlyRaid$omenLevel;
+    }
+
+    @Override
+    public void evokerOnlyRaid$setOmenLevel(int level) {
+        this.evokerOnlyRaid$omenLevel = level;
+    }
+
+    @Inject(method = "tick", at = @At("HEAD"))
+    private void evokerOnlyRaid$restoreSavedOmenLevel(ServerLevel level, CallbackInfo ci) {
+        if (evokerOnlyRaid$omenLevel > 0) {
+            return;
+        }
+
+        Raid raid = (Raid) (Object) this;
+        OptionalInt raidId = level.getRaids().getId(raid);
+
+        if (raidId.isEmpty()) {
+            return;
+        }
+
+        EvokerRaidSavedData savedData =
+                level.getDataStorage().computeIfAbsent(EvokerRaidSavedData.TYPE);
+
+        int savedOmenLevel = savedData.getRaidLevel(raidId.getAsInt());
+
+        if (savedOmenLevel > 0) {
+            evokerOnlyRaid$omenLevel = savedOmenLevel;
+        }
+    }
 
     @ModifyReturnValue(method = "getRaidOmenLevel", at = @At("RETURN"))
     private int evokerOnlyRaid$blockOmenDuringCustomRaid(int original) {
