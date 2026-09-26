@@ -69,8 +69,7 @@ public final class ModEffects {
 
                     Raid raid = level.getRaidAt(player.blockPosition());
 
-                    if (raid == null
-                            || raid.getRaidOmenLevel() < raid.getMaxRaidOmenLevel()) {
+                    if (raid == null) {
 
                         player.addEffect(
                                 new MobEffectInstance(
