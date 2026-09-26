@@ -55,7 +55,7 @@ public final class EvokerRaidSavedData extends SavedData {
     @Override
     public CompoundTag save(
             CompoundTag tag,
-            HolderLookup.Provider provider
+            HolderLookup.Provider
     ) {
         CompoundTag raidLevelsTag = new CompoundTag();
 
