@@ -1,0 +1,1 @@
+{"type":"minecraft:brewing","input":{"item":"minecraft:potion","potion_contents":{"potions":"evokers-omen:evokers_omen_3_base"}},"reagent":{"item":"minecraft:emerald"},"output":{"id":"minecraft:potion","components":{"minecraft:potion_contents":{"potion":"evokers-omen:evokers_omen_3_emerald"}}}}
