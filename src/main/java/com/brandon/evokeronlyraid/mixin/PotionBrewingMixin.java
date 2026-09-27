@@ -1,6 +1,5 @@
 package com.brandon.evokeronlyraid.mixin;
 
-import com.brandon.evokeronlyraid.ModItems;
 import com.brandon.evokeronlyraid.ModPotions;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
@@ -8,9 +7,10 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.PotionBrewing;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.component.OminousBottleAmplifier;
+import net.minecraft.world.item.crafting.BrewingInput;
+import net.minecraft.world.item.crafting.BrewingRecipe;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import net.minecraft.world.level.block.entity.BannerPatterns;
 import org.spongepowered.asm.mixin.Mixin;
@@ -21,278 +21,111 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
 
-@Mixin(PotionBrewing.class)
+@Mixin(BrewingRecipe.class)
 public abstract class PotionBrewingMixin {
 
     @Inject(
-            method = "isIngredient",
-            at = @At("HEAD"),
+            method = "matches(Lnet/minecraft/world/item/crafting/BrewingInput;)Z",
+            at = @At("RETURN"),
             cancellable = true
     )
-    private void evokerOnlyRaid$isIngredient(
-            ItemStack ingredient,
+    private void evokerOnlyRaid$validateSpecialIngredients(
+            BrewingInput brewingInput,
             CallbackInfoReturnable<Boolean> cir
     ) {
-        if (ingredient.is(Items.EMERALD)
-                || ingredient.is(Items.BANNER.white())
-                || ingredient.is(Items.EMERALD_BLOCK)
-                || ingredient.is(Items.TOTEM_OF_UNDYING)) {
-            cir.setReturnValue(true);
+        if (!cir.getReturnValue()) {
+            return;
         }
-    }
 
-    @Inject(
-            method = "hasMix",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private void evokerOnlyRaid$hasMix(
-            ItemStack source,
-            ItemStack ingredient,
-            CallbackInfoReturnable<Boolean> cir
-    ) {
-        // Reject Ominous Bottle IV and V when used with Awkward Potion.
-        if (evokerOnlyRaid$isAwkwardPotion(source)
-                && ingredient.is(Items.OMINOUS_BOTTLE)) {
+        BrewingRecipe recipe =
+                (BrewingRecipe) (Object) this;
 
-            OminousBottleAmplifier amplifier =
-                    ingredient.get(
-                            DataComponents.OMINOUS_BOTTLE_AMPLIFIER
-                    );
+        ItemStack source = brewingInput.input();
+        ItemStack reagent = brewingInput.reagent();
+        ItemStack output = recipe.getOutput().create();
 
-            if (amplifier != null
-                    && amplifier.value() >= 3) {
-                cir.setReturnValue(false);
+        if (source.is(Items.POTION)
+                && reagent.is(Items.OMINOUS_BOTTLE)) {
+
+            if (evokerOnlyRaid$isPotion(
+                    output,
+                    ModPotions.EVOKERS_OMEN_I_BASE
+            )) {
+                cir.setReturnValue(
+                        evokerOnlyRaid$hasOminousBottleAmplifier(
+                                reagent,
+                                0
+                        )
+                );
+                return;
+            }
+
+            if (evokerOnlyRaid$isPotion(
+                    output,
+                    ModPotions.EVOKERS_OMEN_II_BASE
+            )) {
+                cir.setReturnValue(
+                        evokerOnlyRaid$hasOminousBottleAmplifier(
+                                reagent,
+                                1
+                        )
+                );
+                return;
+            }
+
+            if (evokerOnlyRaid$isPotion(
+                    output,
+                    ModPotions.EVOKERS_OMEN_III_BASE
+            )) {
+                cir.setReturnValue(
+                        evokerOnlyRaid$hasOminousBottleAmplifier(
+                                reagent,
+                                2
+                        )
+                );
                 return;
             }
         }
 
-        // LEVEL I
-        if (evokerOnlyRaid$isPotion(
-                source,
-                ModPotions.EVOKERS_OMEN_I_BASE
-        )) {
+        if (reagent.is(Items.BANNER.white())
+                && evokerOnlyRaid$isEvokersOmenBrewingStage(source)) {
+
             cir.setReturnValue(
-                    ingredient.is(Items.EMERALD)
-            );
-            return;
-        }
-
-        // LEVEL II
-        if (evokerOnlyRaid$isPotion(
-                source,
-                ModPotions.EVOKERS_OMEN_II_BASE
-        )) {
-            cir.setReturnValue(
-                    evokerOnlyRaid$isOminousBanner(ingredient)
-            );
-            return;
-        }
-
-        // LEVEL III - First ingredient can be Emerald OR Ominous Banner.
-        if (evokerOnlyRaid$isPotion(
-                source,
-                ModPotions.EVOKERS_OMEN_III_BASE
-        )) {
-            cir.setReturnValue(
-                    ingredient.is(Items.EMERALD)
-                            || evokerOnlyRaid$isOminousBanner(ingredient)
-            );
-            return;
-        }
-
-        // LEVEL III - Emerald was added first, so Banner is required.
-        if (evokerOnlyRaid$isPotion(
-                source,
-                ModPotions.EVOKERS_OMEN_III_EMERALD
-        )) {
-            cir.setReturnValue(
-                    evokerOnlyRaid$isOminousBanner(ingredient)
-            );
-            return;
-        }
-
-        // LEVEL III - Banner was added first, so Emerald is required.
-        if (evokerOnlyRaid$isPotion(
-                source,
-                ModPotions.EVOKERS_OMEN_III_BANNER
-        )) {
-            cir.setReturnValue(
-                    ingredient.is(Items.EMERALD)
-            );
-            return;
-        }
-
-        // LEVEL IV
-        if (evokerOnlyRaid$isPotion(
-                source,
-                ModPotions.EVOKERS_OMEN_IV_BASE
-        )) {
-            cir.setReturnValue(
-                    ingredient.is(Items.EMERALD_BLOCK)
-            );
-            return;
-        }
-
-        // LEVEL V
-        if (evokerOnlyRaid$isPotion(
-                source,
-                ModPotions.EVOKERS_OMEN_V_BASE
-        )) {
-            cir.setReturnValue(
-                    ingredient.is(Items.TOTEM_OF_UNDYING)
-            );
-        }
-    }
-
-    @Inject(
-            method = "mix",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private void evokerOnlyRaid$mix(
-            ItemStack ingredient,
-            ItemStack source,
-            CallbackInfoReturnable<ItemStack> cir
-    ) {
-        // Ominous Bottle IV and V must not brew from Awkward Potion.
-        if (evokerOnlyRaid$isAwkwardPotion(source)
-                && ingredient.is(Items.OMINOUS_BOTTLE)) {
-
-            OminousBottleAmplifier amplifier =
-                    ingredient.get(
-                            DataComponents.OMINOUS_BOTTLE_AMPLIFIER
-                    );
-
-            if (amplifier != null
-                    && amplifier.value() >= 3) {
-                cir.setReturnValue(source);
-                return;
-            }
-        }
-
-        // LEVEL I
-        if (ingredient.is(Items.EMERALD)
-                && evokerOnlyRaid$isPotion(
-                source,
-                ModPotions.EVOKERS_OMEN_I_BASE
-        )) {
-            cir.setReturnValue(
-                    new ItemStack(ModItems.EVOKERS_OMEN_I)
-            );
-            return;
-        }
-
-        // LEVEL II
-        if (evokerOnlyRaid$isOminousBanner(ingredient)
-                && evokerOnlyRaid$isPotion(
-                source,
-                ModPotions.EVOKERS_OMEN_II_BASE
-        )) {
-            cir.setReturnValue(
-                    new ItemStack(ModItems.EVOKERS_OMEN_II)
-            );
-            return;
-        }
-
-        // LEVEL III - Banner first.
-        if (evokerOnlyRaid$isOminousBanner(ingredient)
-                && evokerOnlyRaid$isPotion(
-                source,
-                ModPotions.EVOKERS_OMEN_III_BASE
-        )) {
-            cir.setReturnValue(
-                    evokerOnlyRaid$createPotionStack(
-                            source,
-                            ModPotions.EVOKERS_OMEN_III_BANNER
-                    )
-            );
-            return;
-        }
-
-        // LEVEL III - Emerald first, then Banner.
-        if (evokerOnlyRaid$isOminousBanner(ingredient)
-                && evokerOnlyRaid$isPotion(
-                source,
-                ModPotions.EVOKERS_OMEN_III_EMERALD
-        )) {
-            cir.setReturnValue(
-                    new ItemStack(ModItems.EVOKERS_OMEN_III)
-            );
-            return;
-        }
-
-        // LEVEL III - Banner first, then Emerald.
-        if (ingredient.is(Items.EMERALD)
-                && evokerOnlyRaid$isPotion(
-                source,
-                ModPotions.EVOKERS_OMEN_III_BANNER
-        )) {
-            cir.setReturnValue(
-                    new ItemStack(ModItems.EVOKERS_OMEN_III)
-            );
-            return;
-        }
-
-        // LEVEL IV
-        if (ingredient.is(Items.EMERALD_BLOCK)
-                && evokerOnlyRaid$isPotion(
-                source,
-                ModPotions.EVOKERS_OMEN_IV_BASE
-        )) {
-            cir.setReturnValue(
-                    new ItemStack(ModItems.EVOKERS_OMEN_IV)
-            );
-            return;
-        }
-
-        // LEVEL V
-        if (ingredient.is(Items.TOTEM_OF_UNDYING)
-                && evokerOnlyRaid$isPotion(
-                source,
-                ModPotions.EVOKERS_OMEN_V_BASE
-        )) {
-            cir.setReturnValue(
-                    new ItemStack(ModItems.EVOKERS_OMEN_V)
+                    evokerOnlyRaid$isOminousBanner(reagent)
             );
         }
     }
 
     @Unique
-    private static ItemStack evokerOnlyRaid$createPotionStack(
-            ItemStack source,
-            Holder<Potion> potion
+    private static boolean evokerOnlyRaid$hasOminousBottleAmplifier(
+            ItemStack stack,
+            int requiredAmplifier
     ) {
-        ItemStack result = source.copy();
-        result.set(
-                DataComponents.POTION_CONTENTS,
-                new PotionContents(potion)
-        );
-        return result;
+        OminousBottleAmplifier amplifier =
+                stack.get(
+                        DataComponents.OMINOUS_BOTTLE_AMPLIFIER
+                );
+
+        return amplifier != null
+                && amplifier.value() == requiredAmplifier;
     }
 
     @Unique
-    private static boolean evokerOnlyRaid$isAwkwardPotion(
+    private static boolean evokerOnlyRaid$isEvokersOmenBrewingStage(
             ItemStack stack
     ) {
-        PotionContents contents =
-                stack.get(DataComponents.POTION_CONTENTS);
-
-        if (contents == null
-                || contents.potion().isEmpty()) {
-            return false;
-        }
-
-        Holder<Potion> potion =
-                contents.potion().get();
-
-        return potion.unwrapKey()
-                .map(key ->
-                        key.identifier()
-                                .getPath()
-                                .equals("awkward")
-                )
-                .orElse(false);
+        return evokerOnlyRaid$isPotion(
+                stack,
+                ModPotions.EVOKERS_OMEN_II_BASE
+        )
+                || evokerOnlyRaid$isPotion(
+                stack,
+                ModPotions.EVOKERS_OMEN_III_BASE
+        )
+                || evokerOnlyRaid$isPotion(
+                stack,
+                ModPotions.EVOKERS_OMEN_III_EMERALD
+        );
     }
 
     @Unique
